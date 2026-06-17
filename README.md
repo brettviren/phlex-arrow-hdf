@@ -4,7 +4,7 @@ The thin per-technology Phlex glue for the **HDF5 write path** of the
 narrow-waist file I/O design. Loading this plugin registers an HDF5 output
 module that persists Arrow products by delegating to `arrow-hdf`.
 
-- `phlex_arrow_hdf/ArrowHdfOutput.{h,cpp}` — the output logic (unit-testable):
+- `phlex_arrow_hdf/ArrowHdfOutput.{hpp,cpp}` — the output logic (unit-testable):
   per store, select Arrow products (phlex-arrow-common), address each from the
   full structured `store.index()` (neutral components → `arrow_hdf::Address`
   here), and delegate the write to `arrow_hdf::Hdf5File`. Lazy single open file;

@@ -57,6 +57,7 @@ target_link_libraries(phlex_arrow_hdf
     phlex_arrow_common::phlex_arrow_common
     phlex::model
     Arrow::arrow_shared
+    spdlog::spdlog
     ${PHLEX_ARROW_HDF_RUNTIME_LIBS}
 )
 

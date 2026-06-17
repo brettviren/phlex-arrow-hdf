@@ -8,8 +8,10 @@
 
 #include "phlex/model/product_specification.hpp"
 
+#include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/spdlog.h>
+
 #include <algorithm>
-#include <iostream>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -17,6 +19,27 @@
 #include <vector>
 
 namespace phlex_arrow_hdf {
+
+namespace {
+
+// The package's logger.  A phlex plugin must NOT log through spdlog's global
+// DEFAULT logger: in a phlex+WCT process, WireCell hijacks the default logger
+// (set_default_logger to its "wct" logger, which has no sinks until WCT logging
+// is configured), silencing any default-logger output that runs after a
+// WCT-pulling plugin loads.  Since spdlog's registry IS shared correctly across
+// the binary and all plugins (one libspdlog.so, SPDLOG_COMPILED_LIB), the safe
+// pattern is to OWN a named logger with an explicit sink, fetched-or-created
+// once.  See beads ddm-jj1.
+spdlog::logger& logger()
+{
+    static std::shared_ptr<spdlog::logger> lg = [] {
+        if (auto existing = spdlog::get("phlex-arrow-hdf")) return existing;
+        return spdlog::stderr_color_mt("phlex-arrow-hdf");
+    }();
+    return *lg;
+}
+
+}  // namespace
 
 ArrowHdfOutput::ArrowHdfOutput(std::string path, std::vector<std::string> suffixes)
   : m_path(std::move(path)), m_suffixes(std::move(suffixes))
@@ -41,8 +64,9 @@ void ArrowHdfOutput::write(const phlex::experimental::product_store& store)
                 claimed.push_back(spec);
             }
             else if (m_logged_drops.insert(suffix).second) {
-                std::clog << "phlex-arrow-hdf[" << m_path << "]: not persisting Arrow product '"
-                          << suffix << "' (not in this module's claim list)\n";
+                logger().info("phlex-arrow-hdf[{}]: not persisting Arrow product '{}' "
+                              "(not in this module's claim list)",
+                              m_path, suffix);
             }
         }
         specs = std::move(claimed);

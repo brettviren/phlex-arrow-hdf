@@ -75,11 +75,14 @@ enable_testing()
 add_subdirectory(test)
 
 include(GNUInstallDirs)
+# phlex-arrow-hdf is a PURE PLUGIN package: it produces a Phlex output plugin
+# (dlopen MODULE) plus the implementation library it links.  Its headers are
+# PRIVATE and are deliberately NOT installed and NO CMake Config is exported —
+# nothing should build against this "final" package; loading the plugin is its
+# only interface.  The implementation .so is still installed because the plugin
+# links it at runtime.
 install(TARGETS phlex_arrow_hdf
   LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
   ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
 install(TARGETS phlex_arrow_hdf_output
   LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}")
-install(DIRECTORY phlex_arrow_hdf/
-  DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/phlex_arrow_hdf"
-  FILES_MATCHING PATTERN "*.h")

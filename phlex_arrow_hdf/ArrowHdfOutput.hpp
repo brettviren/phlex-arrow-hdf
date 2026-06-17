@@ -16,9 +16,9 @@
 // Concurrency: register at concurrency::serial (libhdf5 is not thread-safe).
 // This class does no internal locking; the serial output node provides it.
 
-#include "arrow_hdf/Hdf5File.h"
+#include "arrow_hdf/Hdf5File.hpp"
 
-#include "phlex_arrow_common/CoveragePolicy.h"
+#include "phlex_arrow_common/CoveragePolicy.hpp"
 
 #include "phlex/model/product_store.hpp"
 

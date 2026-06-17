@@ -7,7 +7,7 @@
 //   products    (array<string>, optional): product suffixes to write; default
 //               (empty) writes all Arrow-typed products.
 
-#include "phlex_arrow_hdf/ArrowHdfOutput.h"
+#include "phlex_arrow_hdf/ArrowHdfOutput.hpp"
 
 #include "phlex/module.hpp"
 

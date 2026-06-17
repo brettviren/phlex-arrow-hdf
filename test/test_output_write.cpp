@@ -4,13 +4,13 @@
 // ArrowHdfOutput::write, then read the members back with arrow-hdf and check
 // they round-trip and the group paths reflect the cell hierarchy.
 
-#include "phlex_arrow_hdf/ArrowHdfOutput.h"
+#include "phlex_arrow_hdf/ArrowHdfOutput.hpp"
 
-#include "phlex_arrow_common/StoreAddress.h"
-#include "phlex_arrow_common/TableGroup.h"
+#include "phlex_arrow_common/StoreAddress.hpp"
+#include "phlex_arrow_common/TableGroup.hpp"
 
-#include "arrow_hdf/Hdf5File.h"
-#include "arrow_hdf/Address.h"
+#include "arrow_hdf/Hdf5File.hpp"
+#include "arrow_hdf/Address.hpp"
 
 #include "phlex/model/data_cell_index.hpp"
 #include "phlex/model/product_store.hpp"

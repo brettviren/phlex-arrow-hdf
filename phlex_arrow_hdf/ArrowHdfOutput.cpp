@@ -1,10 +1,10 @@
-#include "phlex_arrow_hdf/ArrowHdfOutput.h"
+#include "phlex_arrow_hdf/ArrowHdfOutput.hpp"
 
-#include "phlex_arrow_common/ArrowProducts.h"
-#include "phlex_arrow_common/StoreAddress.h"
-#include "phlex_arrow_common/TableGroup.h"
+#include "phlex_arrow_common/ArrowProducts.hpp"
+#include "phlex_arrow_common/StoreAddress.hpp"
+#include "phlex_arrow_common/TableGroup.hpp"
 
-#include "arrow_hdf/Address.h"
+#include "arrow_hdf/Address.hpp"
 
 #include "phlex/model/product_specification.hpp"
 

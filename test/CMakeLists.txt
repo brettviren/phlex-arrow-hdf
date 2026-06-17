@@ -26,6 +26,15 @@ if(PHLEX_EXECUTABLE)
       "${CMAKE_INSTALL_PREFIX}"
       "${PHLEX_VIEW_PREFIX}"
       "${CMAKE_CURRENT_SOURCE_DIR}/integration_frame_to_hdf.jsonnet")
+
+  # Coverage-policy drop scenario (ddm-c3s.8): the output module claims only
+  # 'deposet' while the source emits frames; assert the unclaimed 'frame'
+  # product is logged as an intentional drop (never silent) and not written.
+  add_test(NAME integration_drop
+    COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/integration_drop.sh"
+      "${CMAKE_INSTALL_PREFIX}"
+      "${PHLEX_VIEW_PREFIX}"
+      "${CMAKE_CURRENT_SOURCE_DIR}/integration_drop.jsonnet")
 else()
-  message(STATUS "phlex executable not found; skipping integration_write test")
+  message(STATUS "phlex executable not found; skipping integration tests")
 endif()

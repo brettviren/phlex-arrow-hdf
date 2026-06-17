@@ -18,9 +18,12 @@
 
 #include "arrow_hdf/Hdf5File.h"
 
+#include "phlex_arrow_common/CoveragePolicy.h"
+
 #include "phlex/model/product_store.hpp"
 
 #include <optional>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -36,10 +39,17 @@ class ArrowHdfOutput {
     /// (Signature is void(product_store const&).)  Throws on an HDF5 error.
     void write(const phlex::experimental::product_store& store);
 
+    /// This module's coverage claim (its configured suffixes; empty = wildcard,
+    /// i.e. claims all Arrow products).  A job-level validator composes the
+    /// claims of all output modules and runs phlex_arrow::enforce_coverage to
+    /// catch unclaimed or double-claimed products before any data flows.
+    phlex_arrow::ModuleClaim claim() const { return {m_path, m_suffixes}; }
+
   private:
     std::string m_path;
     std::vector<std::string> m_suffixes;
     std::optional<arrow_hdf::Hdf5File> m_file;   // created lazily, reused across stores
+    std::set<std::string> m_logged_drops;        // suffixes already reported as dropped (log once)
 };
 
 }  // namespace phlex_arrow_hdf

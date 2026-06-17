@@ -19,9 +19,11 @@
 
 set -euo pipefail
 
-prefix=${1:?prefix}
-view=${2:?view}
-jsonnet=${3:?jsonnet}
+# Resolve to absolute paths: the test cd's into a temp workdir before running
+# phlex, so relative prefix/view/jsonnet args would otherwise break.
+prefix=$(realpath "${1:?prefix}")
+view=$(realpath "${2:?view}")
+jsonnet=$(realpath "${3:?jsonnet}")
 
 export PATH="${view}/bin:${PATH}"
 export PHLEX_PLUGIN_PATH="${prefix}/lib:${view}/lib"

@@ -19,8 +19,7 @@
 #include "arrow_hdf/Hdf5File.hpp"
 
 #include "phlex_arrow_common/CoveragePolicy.hpp"
-
-#include "phlex/model/product_store.hpp"
+#include "phlex_arrow_common/PhlexTypes.hpp"
 
 #include <optional>
 #include <set>
@@ -37,7 +36,7 @@ class ArrowHdfOutput {
 
     /// Phlex output entry point: persist this store's selected Arrow products.
     /// (Signature is void(product_store const&).)  Throws on an HDF5 error.
-    void write(const phlex::experimental::product_store& store);
+    void write(const phlex_arrow::product_store& store);
 
     /// This module's coverage claim (its configured suffixes; empty = wildcard,
     /// i.e. claims all Arrow products).  A job-level validator composes the

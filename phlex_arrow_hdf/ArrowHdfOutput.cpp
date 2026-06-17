@@ -46,7 +46,7 @@ ArrowHdfOutput::ArrowHdfOutput(std::string path, std::vector<std::string> suffix
 {
 }
 
-void ArrowHdfOutput::write(const phlex::experimental::product_store& store)
+void ArrowHdfOutput::write(const phlex_arrow::product_store& store)
 {
     if (store.empty()) return;
 
@@ -55,7 +55,7 @@ void ArrowHdfOutput::write(const phlex::experimental::product_store& store)
     // so an intentional drop is never silent (logged once per distinct suffix).
     auto specs = phlex_arrow::select_arrow_products(store);
     if (!m_suffixes.empty()) {
-        std::vector<phlex::experimental::product_specification> claimed;
+        std::vector<phlex_arrow::product_specification> claimed;
         for (const auto& spec : specs) {
             const std::string suffix{static_cast<std::string_view>(spec.suffix())};
             const bool mine =

@@ -2,6 +2,7 @@
 
 #include "phlex_arrow_common/ArrowProducts.h"
 #include "phlex_arrow_common/StoreAddress.h"
+#include "phlex_arrow_common/TableGroup.h"
 
 #include "arrow_hdf/Address.h"
 
@@ -44,9 +45,10 @@ void ArrowHdfOutput::write(const phlex::experimental::product_store& store)
         // then build the technology-specific path here.
         arrow_hdf::Address addr(phlex_arrow::store_address(store, product));
 
-        // (3) delegate the serialization to arrow-hdf.
-        const auto& table = store.get_product<phlex_arrow::arrow_table_ptr>(spec);
-        auto st = m_file->write(addr, table);
+        // (3) translate the TableGroup down to primitive arrow-hdf calls: each
+        // member table becomes a child group under the product's parent group.
+        const auto& group = store.get_product<phlex_arrow::TableGroup>(spec);
+        auto st = m_file->write_tables(addr, group.members, group.type);
         if (!st.ok()) {
             throw std::runtime_error("ArrowHdfOutput: write " + addr.path() + ": " + st.ToString());
         }

@@ -42,9 +42,10 @@ foreach(_prefix IN LISTS CMAKE_PREFIX_PATH)
   endif()
 endforeach()
 
-# The output logic (unit-testable).
+# The output + input logic (unit-testable).
 add_library(phlex_arrow_hdf SHARED
   phlex_arrow_hdf/ArrowHdfOutput.cpp
+  phlex_arrow_hdf/ArrowHdfInput.cpp
 )
 target_include_directories(phlex_arrow_hdf
   PUBLIC
@@ -71,6 +72,17 @@ target_link_libraries(phlex_arrow_hdf_output PRIVATE
   ${PHLEX_ARROW_HDF_RUNTIME_LIBS}
 )
 
+# The Phlex read source plugin (dlopen MODULE): loading it registers the HDF5
+# single-provider read source.
+add_library(phlex_arrow_hdf_source MODULE
+  phlex_arrow_hdf/SourceModule.cpp
+)
+target_link_libraries(phlex_arrow_hdf_source PRIVATE
+  phlex_arrow_hdf
+  phlex::module
+  ${PHLEX_ARROW_HDF_RUNTIME_LIBS}
+)
+
 enable_testing()
 add_subdirectory(test)
 
@@ -85,4 +97,6 @@ install(TARGETS phlex_arrow_hdf
   LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
   ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
 install(TARGETS phlex_arrow_hdf_output
+  LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+install(TARGETS phlex_arrow_hdf_source
   LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}")

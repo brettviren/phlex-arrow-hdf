@@ -45,6 +45,17 @@ if(PHLEX_EXECUTABLE)
       "${CMAKE_INSTALL_PREFIX}"
       "${PHLEX_VIEW_PREFIX}"
       "${CMAKE_CURRENT_SOURCE_DIR}/integration_drop.jsonnet")
+
+  # End-to-end read-back (ddm-c3s.17): write a file, then read it back through
+  # phlex_arrow_hdf_source -> wire_cell_phlex_arrow_from_arrow -> frame_observer.
+  # Exercises plugins from phlex-arrow-hdf + wire-cell-phlex-arrow + wire-cell-
+  # phlex, so it requires all of them installed under CMAKE_INSTALL_PREFIX.
+  add_test(NAME integration_read
+    COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/integration_read.sh"
+      "${CMAKE_INSTALL_PREFIX}"
+      "${PHLEX_VIEW_PREFIX}"
+      "${CMAKE_CURRENT_SOURCE_DIR}/integration_frame_to_hdf.jsonnet"
+      "${CMAKE_CURRENT_SOURCE_DIR}/integration_read.jsonnet")
 else()
   message(STATUS "phlex executable not found; skipping integration tests")
 endif()

@@ -31,16 +31,18 @@ find_package(arrow_hdf CONFIG REQUIRED)
 find_package(phlex_arrow_common CONFIG REQUIRED)
 
 # Link the Spack view's gcc15 libstdc++ explicitly (GLIBCXX/CXXABI resolution).
-set(PHLEX_ARROW_HDF_RUNTIME_LIBS "")
-foreach(_prefix IN LISTS CMAKE_PREFIX_PATH)
-  if(EXISTS "${_prefix}/lib/libstdc++.so.6")
-    file(REAL_PATH "${_prefix}/lib/libstdc++.so.6" _stdc_real)
-    get_filename_component(_stdc_dir "${_stdc_real}" DIRECTORY)
-    set(PHLEX_ARROW_HDF_RUNTIME_LIBS "${_stdc_real}")
-    string(APPEND CMAKE_EXE_LINKER_FLAGS " -Wl,-rpath,${_stdc_dir}")
-    break()
-  endif()
-endforeach()
+# Resolve THIS compiler's libstdc++ directly, independent of CMAKE_PREFIX_PATH
+# order. A Spack build can place an older gcc-runtime earlier on the path; the
+# previous prefix scan grabbed that, linking gcc@15 objects against gcc@11
+# libstdc++ (missing GLIBCXX_3.4.31/.32). The compiler always yields its own.
+execute_process(
+  COMMAND "${CMAKE_CXX_COMPILER}" -print-file-name=libstdc++.so
+  OUTPUT_VARIABLE _stdc_real OUTPUT_STRIP_TRAILING_WHITESPACE)
+file(REAL_PATH "${_stdc_real}" _stdc_real)
+get_filename_component(_stdc_dir "${_stdc_real}" DIRECTORY)
+set(PHLEX_ARROW_HDF_RUNTIME_LIBS "${_stdc_real}")
+link_directories(BEFORE "${_stdc_dir}")
+string(APPEND CMAKE_EXE_LINKER_FLAGS " -Wl,-rpath,${_stdc_dir}")
 
 # The output + input logic (unit-testable).
 add_library(phlex_arrow_hdf SHARED

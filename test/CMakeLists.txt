@@ -18,6 +18,17 @@ target_link_libraries(test_input_read PRIVATE
   ${PHLEX_ARROW_HDF_RUNTIME_LIBS})
 add_test(NAME input_read COMMAND test_input_read)
 
+add_executable(test_source test_source.cpp)
+target_link_libraries(test_source PRIVATE
+  phlex_arrow_hdf
+  arrow_hdf::arrow_hdf
+  phlex_arrow_common::phlex_arrow_common
+  phlex::model
+  phlex::core
+  Arrow::arrow_shared
+  ${PHLEX_ARROW_HDF_RUNTIME_LIBS})
+add_test(NAME source COMMAND test_source)
+
 # Cross-package write-path integration test: drives the `phlex` binary over a
 # workflow chaining wcp_frame_source -> wire_cell_phlex_arrow_convert ->
 # phlex_arrow_hdf_output, then validates the produced HDF5 layout (data-cell

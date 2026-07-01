@@ -20,6 +20,7 @@
 
 #include "arrow_hdf/Hdf5File.hpp"
 
+#include "phlex_arrow_common/CellHierarchy.hpp"
 #include "phlex_arrow_common/TableGroup.hpp"
 
 #include "phlex/model/data_cell_index.hpp"
@@ -40,7 +41,15 @@ class ArrowHdfInput {
     /// first use and reuses the handle.  Throws on an HDF5 error.
     phlex_arrow::TableGroup read(const phlex::data_cell_index& index);
 
+    /// Scan the file and interpret its stored addresses as a Phlex cell
+    /// hierarchy (the cells + the (creator, product) locations present).  Uses
+    /// the SAME open handle as read(), so a source that scans then reads shares
+    /// one open file.  Throws on an HDF5 error.
+    phlex_arrow::CellHierarchy scan();
+
   private:
+    void ensure_open();  // open m_file read-only on first use; no-op thereafter
+
     std::string m_path;
     std::string m_creator;
     std::string m_product;

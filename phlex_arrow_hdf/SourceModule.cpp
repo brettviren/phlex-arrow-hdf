@@ -1,11 +1,18 @@
-// Phlex plugin: register the HDF5 Arrow read source (single provider).
+// Phlex plugin: register the HDF5 Arrow read source (ddm-c3s.18).
 //
-// Loading this plugin registers a source whose single provider emits the
-// TableGroup stored for each data cell, read from an HDF5 file by
-// ArrowHdfInput.  A downstream convert node (wire-cell-phlex-arrow) turns the
-// TableGroup back into a WCT product.
+// Loading this plugin registers an ArrowHdfSource (a phlex::source) under the
+// job's "sources" config section.  The framework calls the source's
+// create_providers() to implicitly wire a provider that emits the TableGroup
+// stored for each data cell (read from HDF5 by ArrowHdfInput); a downstream
+// convert node (wire-cell-phlex-arrow) turns the TableGroup back into a WCT
+// product.  The source also enumerates the file's cells (indices()/cells()),
+// which a file-driven driver (ddm-c3s.16) can use to drive exactly those cells.
 //
-// Config keys:
+// This replaces the previous PHLEX_REGISTER_PROVIDERS + m.provide(...)
+// .output_product(...) path (the informal 0.2.0 provider builder): the read
+// path now uses only the official 0.3.0 source extension point.
+//
+// Config keys (under "sources"):
 //   input_file     (string, required): the HDF5 file to read.
 //   creator        (string, required): the creator that WROTE the data (used to
 //                  locate it in the file — the on-disk address).
@@ -14,24 +21,15 @@
 //   output_layer   (string, required): the Phlex layer to emit into.
 //   output_creator (string, optional, default "input"): the creator label on
 //                  the emitted product (what downstream nodes route on).
-//
-// NOTE: this provides products only for the data cells the driver yields; a
-// driver that auto-discovers the file's cells is the deferred ddm-c3s.16 work.
 
-#include "phlex_arrow_hdf/ArrowHdfInput.hpp"
-
-#include "phlex_arrow_common/PhlexTypes.hpp"  // phlex_arrow::identifier
+#include "phlex_arrow_hdf/ArrowHdfSource.hpp"
 
 #include "phlex/configuration.hpp"
-#include "phlex/model/data_cell_index.hpp"
 #include "phlex/source.hpp"
 
-#include <memory>
 #include <string>
 
-using namespace phlex;
-
-PHLEX_REGISTER_PROVIDERS(m, config)
+PHLEX_REGISTER_SOURCE(s, config)
 {
     auto const input_file = config.get<std::string>("input_file");
     auto const creator = config.get<std::string>("creator");
@@ -39,13 +37,6 @@ PHLEX_REGISTER_PROVIDERS(m, config)
     auto const output_layer = config.get<std::string>("output_layer");
     auto const output_creator = config.get<std::string>("output_creator", std::string{"input"});
 
-    auto reader = std::make_shared<phlex_arrow_hdf::ArrowHdfInput>(input_file, creator, product);
-
-    m.provide("arrow_hdf_read",
-              [reader](data_cell_index const& id) -> phlex_arrow::TableGroup {
-                  return reader->read(id);
-              })
-      .output_product(output_creator,
-                      phlex_arrow::identifier{product},
-                      phlex_arrow::identifier{output_layer});
+    s.add_source<phlex_arrow_hdf::ArrowHdfSource>(
+      "arrow_hdf_read", input_file, creator, product, output_creator, output_layer);
 }

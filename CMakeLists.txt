@@ -48,6 +48,7 @@ string(APPEND CMAKE_EXE_LINKER_FLAGS " -Wl,-rpath,${_stdc_dir}")
 add_library(phlex_arrow_hdf SHARED
   phlex_arrow_hdf/ArrowHdfOutput.cpp
   phlex_arrow_hdf/ArrowHdfInput.cpp
+  phlex_arrow_hdf/ArrowHdfSource.cpp
 )
 target_include_directories(phlex_arrow_hdf
   PUBLIC
@@ -59,6 +60,7 @@ target_link_libraries(phlex_arrow_hdf
     arrow_hdf::arrow_hdf
     phlex_arrow_common::phlex_arrow_common
     phlex::model
+    phlex::core        # ArrowHdfSource: phlex::source, product_selector::match
     Arrow::arrow_shared
     spdlog::spdlog
     ${PHLEX_ARROW_HDF_RUNTIME_LIBS}

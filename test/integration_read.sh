@@ -42,4 +42,11 @@ cat read.out
 grep -qiE "no provider found|error|assert" read.out \
   && { echo "FAIL: read phase reported a problem"; exit 1; }
 
-echo "PASS: HDF5 -> TableGroup -> wcphlex::Frame read-back through a Phlex graph"
+# The file-driven driver (ddm-c3s.16) must discover and drive exactly the cells
+# present in the file (integration_frame_to_hdf writes 2 event cells), with no
+# preconfigured count.  Assert it drove 2 -- guards against a silent zero-cell
+# pass (the observer is silent when it never runs).
+grep -qE "phlex_arrow_hdf_driver: driving 2 data cells" read.out \
+  || { echo "FAIL: file-driven driver did not discover the expected 2 cells"; cat read.out; exit 1; }
+
+echo "PASS: file-driven driver discovered 2 cells; HDF5 -> TableGroup -> wcphlex::Frame read-back through a Phlex graph"

@@ -37,6 +37,11 @@ PHLEX_REGISTER_SOURCE(s, config)
     auto const output_layer = config.get<std::string>("output_layer");
     auto const output_creator = config.get<std::string>("output_creator", std::string{"input"});
 
+    // Register under the source's configuration label (the "sources" section key,
+    // supplied by the framework as module_label) so a driver's `uses_sources`
+    // can refer to this source by that name.
+    auto const label = config.get<std::string>("module_label", std::string{"arrow_hdf_read"});
+
     s.add_source<phlex_arrow_hdf::ArrowHdfSource>(
-      "arrow_hdf_read", input_file, creator, product, output_creator, output_layer);
+      label, input_file, creator, product, output_creator, output_layer);
 }

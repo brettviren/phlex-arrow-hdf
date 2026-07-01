@@ -77,7 +77,7 @@ target_link_libraries(phlex_arrow_hdf_output PRIVATE
 )
 
 # The Phlex read source plugin (dlopen MODULE): loading it registers the HDF5
-# single-provider read source.
+# read source (ArrowHdfSource, a phlex::source).
 add_library(phlex_arrow_hdf_source MODULE
   phlex_arrow_hdf/SourceModule.cpp
 )
@@ -86,6 +86,34 @@ target_link_libraries(phlex_arrow_hdf_source PRIVATE
   phlex::module
   ${PHLEX_ARROW_HDF_RUNTIME_LIBS}
 )
+
+# The Phlex read driver plugin (dlopen MODULE): loading it registers the
+# file-driven driver that drives the cells an ArrowHdfSource discovered
+# (ddm-c3s.16).
+#
+# phlex v0.3.0 does not INSTALL phlex/driver.hpp (its own CMakeLists installs
+# only concurrency/module/source.hpp), even though PHLEX_REGISTER_DRIVER is a
+# release-notes-public API and all of driver.hpp's dependencies ARE installed
+# (ddm-c3s.19).  As a stopgap we ship a verbatim copy under vendor/, used ONLY
+# when the installed header is absent: if find_file locates the real header we
+# use it, so this transitions automatically once Phlex ships driver.hpp.
+get_target_property(_phlex_core_incs phlex::core INTERFACE_INCLUDE_DIRECTORIES)
+find_file(PHLEX_DRIVER_HPP phlex/driver.hpp HINTS ${_phlex_core_incs})
+add_library(phlex_arrow_hdf_driver MODULE
+  phlex_arrow_hdf/DriverModule.cpp
+)
+target_link_libraries(phlex_arrow_hdf_driver PRIVATE
+  phlex_arrow_hdf
+  phlex::module
+  ${PHLEX_ARROW_HDF_RUNTIME_LIBS}
+)
+if(NOT PHLEX_DRIVER_HPP)
+  message(STATUS "phlex/driver.hpp not installed; using vendored stopgap copy (ddm-c3s.19)")
+  target_include_directories(phlex_arrow_hdf_driver PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/vendor")
+endif()
+install(TARGETS phlex_arrow_hdf_driver
+  LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}")
 
 enable_testing()
 add_subdirectory(test)

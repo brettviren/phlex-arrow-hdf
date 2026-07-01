@@ -45,7 +45,7 @@ PHLEX_REGISTER_PROVIDERS(m, config)
               [reader](data_cell_index const& id) -> phlex_arrow::TableGroup {
                   return reader->read(id);
               })
-      .output_product({.creator = output_creator,
-                       .layer = output_layer,
-                       .suffix = phlex_arrow::identifier{product}});
+      .output_product(output_creator,
+                      phlex_arrow::identifier{product},
+                      phlex_arrow::identifier{output_layer});
 }

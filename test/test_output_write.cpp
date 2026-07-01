@@ -53,7 +53,7 @@ int main()
     auto traces = toy(10, "wc.frame");
     auto frame_tags = toy(20, "wc.frame.frame_tags");
     phlex_arrow::TableGroup group{"wc.frame", {{"traces", traces}, {"frame_tags", frame_tags}}};
-    store.add_product<phlex_arrow::TableGroup>(pe::product_specification("frame"), std::move(group));
+    store.add_product<phlex_arrow::TableGroup>(phlex_arrow::product_specification("frame"), std::move(group));
 
     {
         phlex_arrow_hdf::ArrowHdfOutput out(path);

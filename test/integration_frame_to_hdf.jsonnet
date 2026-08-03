@@ -2,7 +2,7 @@
 //
 // Exercises the full N+M narrow-waist write chain in one Phlex graph:
 //
-//   wcp_frame_source            (wire-cell-phlex)        -> wcphlex::Frame
+//   wcph_frame_gen            (wire-cell-phlex)        -> wcphlex::Frame
 //     -> wire_cell_phlex_arrow_convert (wire-cell-phlex-arrow) -> TableGroup
 //       -> phlex_arrow_hdf_output      (phlex-arrow-hdf)       -> HDF5 file
 //
@@ -22,7 +22,7 @@
     layers: { event: { parent: 'job', total: 2, starting_number: 1 } },
   },
   sources: {
-    frame_source: { cpp: 'wcp_frame_source', output_layer: 'event' },
+    frame_source: { cpp: 'wcph_frame_gen', output_layer: 'event' },
   },
   modules: {
     to_arrow: { cpp: 'wire_cell_phlex_arrow_convert', input_layer: 'event', types: ['frame'] },

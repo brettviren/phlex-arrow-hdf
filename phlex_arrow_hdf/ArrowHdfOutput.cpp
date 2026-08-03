@@ -81,6 +81,13 @@ void ArrowHdfOutput::write(const phlex_arrow::product_store& store)
             throw std::runtime_error("ArrowHdfOutput: create " + m_path + ": " + f.status().ToString());
         }
         m_file.emplace(std::move(*f));
+        // Stamp the address-scheme convention so readers/scanners parse by
+        // declared convention (ddm-c3s.20).
+        auto st = m_file->write_root_attr(phlex_arrow::kAddressSchemeAttr,
+                                          phlex_arrow::kAddressScheme);
+        if (!st.ok()) {
+            throw std::runtime_error("ArrowHdfOutput: address-scheme stamp: " + st.ToString());
+        }
     }
 
     for (const auto& spec : specs) {

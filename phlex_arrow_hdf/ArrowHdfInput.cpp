@@ -25,6 +25,18 @@ void ArrowHdfInput::ensure_open()
         throw std::runtime_error("ArrowHdfInput: open " + m_path + ": " + f.status().ToString());
     }
     m_file.emplace(std::move(*f));
+    // Gate on the file's declared address-scheme convention: reject a
+    // mismatched stamp; accept an absent one best-effort (legacy files).
+    auto scheme = m_file->read_root_attr(phlex_arrow::kAddressSchemeAttr);
+    if (!scheme.ok()) {
+        throw std::runtime_error("ArrowHdfInput: address-scheme attr: " +
+                                 scheme.status().ToString());
+    }
+    if (!scheme->empty() && *scheme != phlex_arrow::kAddressScheme) {
+        throw std::runtime_error("ArrowHdfInput: file '" + m_path + "' uses address scheme '" +
+                                 *scheme + "' but this build expects '" +
+                                 phlex_arrow::kAddressScheme + "'");
+    }
 }
 
 phlex_arrow::TableGroup ArrowHdfInput::read(const phlex::data_cell_index& index)

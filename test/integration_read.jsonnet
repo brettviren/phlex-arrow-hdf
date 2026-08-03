@@ -8,7 +8,7 @@
 //   phlex_arrow_hdf_driver (drives exactly the file's event cells — no counts)
 //     -> phlex_arrow_hdf_source        (reads HDF5 -> phlex_arrow::TableGroup)
 //       -> wire_cell_phlex_arrow_from_arrow (TableGroup -> wcphlex::Frame)
-//         -> wcp_frame_observer        (asserts each reconstructed Frame is non-null)
+//         -> wcph_frame_observer        (asserts each reconstructed Frame is non-null)
 //
 // The driver receives the SAME ArrowHdfSource instance (named in uses_sources)
 // and yields exactly the data cells that source discovered by scanning the file
@@ -41,7 +41,7 @@
       types: ['frame'],
     },
     observer: {
-      cpp: 'wcp_frame_observer',
+      cpp: 'wcph_frame_observer',
       input_layer: 'event',
       input_from: 'from_arrow',  // the convert module's instance name
     },

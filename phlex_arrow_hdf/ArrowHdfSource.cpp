@@ -47,13 +47,16 @@ ArrowHdfSource::ArrowHdfSource(std::string input_file,
   , m_hier(m_reader->scan())  // open + scan once; the reader keeps the handle for reads
 {
     auto job = phlex::data_cell_index::job();
+    // ProductLoc carries the canonical "plugin:algorithm" creator form;
+    // normalize the configured writer creator the same way.
+    const auto writer = phlex_arrow::canonical_creator(m_writer_creator);
     for (auto const& loc : m_hier.root_products) {
-        if (loc.creator == m_writer_creator && loc.product == m_product) {
+        if (loc.creator == writer && loc.product == m_product) {
             m_cells.push_back(job);
             break;
         }
     }
-    collect_cells(job, m_hier.cells, m_writer_creator, m_product, m_cells);
+    collect_cells(job, m_hier.cells, writer, m_product, m_cells);
 }
 
 phlex::detail::provider_bundles ArrowHdfSource::create_providers(

@@ -1,7 +1,7 @@
 #ifndef PHLEX_ARROW_HDF_ARROWHDFSOURCE_HPP
 #define PHLEX_ARROW_HDF_ARROWHDFSOURCE_HPP
 
-// Phlex 0.3.0 source for HDF5 Arrow input (ddm-c3s.18).
+// Phlex source for HDF5 Arrow input (ddm-c3s.18; ported to Phlex 0.4.1).
 //
 // This is the official-extension-point replacement for the old
 // PHLEX_REGISTER_PROVIDERS + m.provide(...).output_product(...) read module.  A
@@ -18,20 +18,23 @@
 //     THIS object and reads hierarchy()/cells() (indices() itself is non-const
 //     and framework-facing).
 //
-// `phlex::source` is a sanctioned public alias.  The provider ABI it requires
-// (phlex::detail::provider_bundle / product_specification / product_ptr) is the
-// one remaining "verboten"-named surface; it is unavoidable (Phlex's own FORM
-// source and unit tests spell it too) and is confined to this file + the
-// phlex_arrow aliases in phlex-arrow-common's PhlexTypes.hpp.
+// `phlex::source` and `phlex::provider_bundles` are public (stable `phlex::`
+// namespace) as of Phlex 0.4.  Filling a bundle needs Phlex's experimental
+// erased-product API; that is confined to phlex-arrow-common's PhlexSource.hpp
+// (provide_if_selected), so this package names no phlex::detail or
+// phlex::experimental type.
+//
+// Stage: since Phlex 0.4 an implicit provider must carry a real stage name
+// (not the reserved "CURRENT"): the stage of the data being read.  It is the
+// `stage` source config key (see SourceModule.cpp).
 
 #include "phlex_arrow_hdf/ArrowHdfInput.hpp"
 
 #include "phlex_arrow_common/CellHierarchy.hpp"
 
-#include "phlex/core/product_selector.hpp"
 #include "phlex/model/data_cell_index.hpp"
 #include "phlex/model/index_generator.hpp"
-#include "phlex/source.hpp"
+#include "phlex/source.hpp"  // phlex::source, provider_bundles, product_selector
 
 #include <memory>
 #include <string>
@@ -48,14 +51,17 @@ class ArrowHdfSource : public phlex::source {
     /// `output_creator` : the creator label the emitted product carries (what
     ///                    downstream nodes route on).
     /// `output_layer`   : the Phlex layer the product lives in.
+    /// `stage`          : the stage the emitted product carries (the stage
+    ///                    that produced the data; must not be "CURRENT").
     ArrowHdfSource(std::string input_file,
                    std::string writer_creator,
                    std::string product,
                    std::string output_creator,
-                   std::string output_layer);
+                   std::string output_layer,
+                   std::string stage = "input");
 
     // --- phlex::source interface --------------------------------------------
-    phlex::detail::provider_bundles create_providers(
+    phlex::provider_bundles create_providers(
         const phlex::product_selector& selector) override;
     phlex::index_generator indices() override;
 
@@ -72,6 +78,7 @@ class ArrowHdfSource : public phlex::source {
     std::string m_product;
     std::string m_output_creator;
     std::string m_output_layer;
+    std::string m_stage;
 
     phlex_arrow::CellHierarchy m_hier;                 // scan result (all products)
     std::vector<phlex::data_cell_index_ptr> m_cells;   // cells holding our product

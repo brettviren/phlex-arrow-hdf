@@ -18,6 +18,7 @@
 // observer is the end-cap that creates demand for the reconstructed Frame.
 // frame_observer asserts (NDEBUG undef'd) so a null/missing frame aborts.
 {
+  stage: 'read',  // the job's stage name (required since Phlex 0.4)
   driver: {
     cpp: 'phlex_arrow_hdf_driver',
     uses_sources: ['reader'],  // drive the cells this source found
@@ -31,6 +32,7 @@
       product: 'frame',
       output_layer: 'event',
       output_creator: 'input',  // label on the emitted TableGroup
+      stage: 'write',           // stage of the data in the file (the writer job's)
     },
   },
   modules: {

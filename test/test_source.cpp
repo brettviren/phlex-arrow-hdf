@@ -1,4 +1,4 @@
-// Unit test for ArrowHdfSource: the Phlex 0.3.0 read source (ddm-c3s.18).
+// Unit test for ArrowHdfSource: the Phlex read source (ddm-c3s.18; Phlex 0.4.1).
 //
 // Writes two data cells' TableGroups (as the write path would), then exercises
 // the source directly (no framework/driver needed):
@@ -15,17 +15,17 @@
 #include "arrow_hdf/Address.hpp"
 #include "arrow_hdf/Hdf5File.hpp"
 
-#include "phlex/core/product_selector.hpp"
 #include "phlex/model/data_cell_index.hpp"
-#include "phlex/model/products.hpp"
-#include "phlex/model/type_id.hpp"
+#include "phlex/source.hpp"  // phlex::product_selector, populate_types
 
 #include <arrow/api.h>
 
 #include <algorithm>
 #include <iostream>
 #include <memory>
+#include <stdexcept>
 #include <string>
+#include <tuple>
 #include <vector>
 
 namespace ah = arrow_hdf;
@@ -47,9 +47,19 @@ static std::shared_ptr<arrow::Table> toy(int v)
 }
 
 // Extract the TableGroup a provider produced for a cell.
-static const phlex_arrow::TableGroup& group_of(const phlex::detail::product_ptr& p)
+template <typename ProductPtr>
+static const phlex_arrow::TableGroup& group_of(const ProductPtr& p)
 {
     return *static_cast<const phlex_arrow::TableGroup*>(p->address());
+}
+
+// A selector as the framework hands it to create_providers(): with the
+// consumer's argument type (TableGroup) stamped on by phlex::populate_types.
+static phlex::product_selector typed(phlex::product_selector sel)
+{
+    std::vector<phlex::product_selector> sels{std::move(sel)};
+    phlex::populate_types<std::tuple<phlex_arrow::TableGroup>>(sels);
+    return sels.front();
 }
 
 int main()
@@ -74,7 +84,7 @@ int main()
 
     // The source: writer_creator="writer" (addressing), advertised as
     // output_creator="input" in layer "event".
-    phlex_arrow_hdf::ArrowHdfSource src(path, writer, product, "input", "event");
+    phlex_arrow_hdf::ArrowHdfSource src(path, writer, product, "input", "event", "sim");
 
     // indices() must enumerate exactly the two written cells.
     std::vector<std::size_t> nums;
@@ -86,14 +96,12 @@ int main()
     check(src.cells().size() == 2, "cells() view matches");
 
     // A matching selector -> exactly one provider that reads the right data.
-    phlex::product_selector match_sel{.creator = "input",
-                                      .layer = "event",
-                                      .suffix = "frame",
-                                      .type = phlex::detail::make_type_id<phlex_arrow::TableGroup>()};
+    auto const match_sel = typed({.creator = "input", .layer = "event", .suffix = "frame"});
     auto bundles = src.create_providers(match_sel);
     check(bundles.size() == 1, "create_providers: one bundle for a matching selector");
     if (bundles.size() == 1) {
         check(bundles[0].layer == "event", "bundle layer");
+        check(bundles[0].stage == "sim", "bundle stage (the configured data stage)");
         // Keep each product_ptr alive while inspecting the TableGroup it owns.
         auto p1 = bundles[0].provider_function(*ev1);
         auto const& g1 = group_of(p1);
@@ -107,12 +115,19 @@ int main()
     }
 
     // A non-matching selector (wrong suffix) -> no providers.
-    phlex::product_selector miss_sel{.creator = "input",
-                                     .layer = "event",
-                                     .suffix = "not_frame",
-                                     .type = phlex::detail::make_type_id<phlex_arrow::TableGroup>()};
+    auto const miss_sel = typed({.creator = "input", .layer = "event", .suffix = "not_frame"});
     check(src.create_providers(miss_sel).empty(),
           "create_providers: no bundle for a non-matching selector");
+    check(src.create_providers(typed({.layer = "event", .suffix = "frame", .stage = "reco"})).empty(),
+          "create_providers: no bundle for another stage");
+
+    bool threw = false;
+    try {
+        phlex_arrow_hdf::ArrowHdfSource bad(path, writer, product, "input", "event", "CURRENT");
+    } catch (std::invalid_argument const&) {
+        threw = true;
+    }
+    check(threw, "stage \"CURRENT\" is rejected");
 
     if (fails) { std::cerr << fails << " failures\n"; return 1; }
     std::cout << "source OK\n";

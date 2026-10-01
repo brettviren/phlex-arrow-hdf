@@ -99,7 +99,7 @@ void ArrowHdfOutput::write(const phlex_arrow::product_store& store)
 
         // (3) translate the TableGroup down to primitive arrow-hdf calls: each
         // member table becomes a child group under the product's parent group.
-        const auto& group = store.get_product<phlex_arrow::TableGroup>(spec);
+        const auto& group = store.get_product<phlex_arrow::TableGroup>(&spec);
         auto st = m_file->write_tables(addr, group.members, group.type);
         if (!st.ok()) {
             throw std::runtime_error("ArrowHdfOutput: write " + addr.path() + ": " + st.ToString());

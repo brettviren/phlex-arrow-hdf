@@ -17,13 +17,15 @@
 #include "phlex/model/algorithm_name.hpp"
 #include "phlex/model/product_specification.hpp"
 
+#include "phlex_arrow_common/PhlexTypes.hpp"
+
 #include <arrow/api.h>
 
 #include <iostream>
 #include <string>
 #include <vector>
 
-namespace pe = phlex::experimental;
+namespace pe = phlex_arrow;  // PhlexTypes.hpp aliases
 static int fails = 0;
 static void check(bool ok, const std::string& what)
 {
@@ -47,7 +49,10 @@ int main()
     auto job = phlex::data_cell_index::job();
     auto run = job->make_child("run", 1);
     auto ev = run->make_child("event", 5);
-    pe::product_store store(ev, pe::algorithm_name("sim"));
+    // Phlex 0.4: a product_store refers to (does not own) its creator and stage.
+    const pe::algorithm_name creator("sim");
+    const pe::identifier stage{"sim"};
+    pe::product_store store(ev, &creator, &stage);
 
     // A frame-like aggregate: two members.
     auto traces = toy(10, "wc.frame");

@@ -19,14 +19,15 @@ endif()
 add_compile_options(-Wall -Wpedantic -Werror)
 
 # Dependencies: the pure HDF5 serializer (arrow-hdf), the Phlex glue
-# (phlex-arrow-common), Phlex itself, Arrow, HDF5.  Find Phlex's
-# un-found-dependency deps (TBB/Boost/spdlog) and Arrow/HDF5 first.
+# (phlex-arrow-common), Phlex itself (>= 0.4.1: installs phlex/driver.hpp and
+# finds its own dependencies), Arrow, HDF5.
 find_package(Arrow CONFIG REQUIRED)
 find_package(HDF5 REQUIRED COMPONENTS C)
-find_package(TBB REQUIRED)
-find_package(Boost REQUIRED COMPONENTS json)
-find_package(spdlog REQUIRED)
-find_package(phlex REQUIRED)
+find_package(phlex 0.4.1 REQUIRED)
+
+# CMAKE_INSTALL_LIBDIR is used by install() rules below; define it up front
+# (it used to leak in from the TBB/spdlog configs that are no longer pre-found).
+include(GNUInstallDirs)
 find_package(arrow_hdf CONFIG REQUIRED)
 find_package(phlex_arrow_common CONFIG REQUIRED)
 
@@ -90,15 +91,6 @@ target_link_libraries(phlex_arrow_hdf_source PRIVATE
 # The Phlex read driver plugin (dlopen MODULE): loading it registers the
 # file-driven driver that drives the cells an ArrowHdfSource discovered
 # (ddm-c3s.16).
-#
-# phlex v0.3.0 does not INSTALL phlex/driver.hpp (its own CMakeLists installs
-# only concurrency/module/source.hpp), even though PHLEX_REGISTER_DRIVER is a
-# release-notes-public API and all of driver.hpp's dependencies ARE installed
-# (ddm-c3s.19).  As a stopgap we ship a verbatim copy under vendor/, used ONLY
-# when the installed header is absent: if find_file locates the real header we
-# use it, so this transitions automatically once Phlex ships driver.hpp.
-get_target_property(_phlex_core_incs phlex::core INTERFACE_INCLUDE_DIRECTORIES)
-find_file(PHLEX_DRIVER_HPP phlex/driver.hpp HINTS ${_phlex_core_incs})
 add_library(phlex_arrow_hdf_driver MODULE
   phlex_arrow_hdf/DriverModule.cpp
 )
@@ -107,11 +99,6 @@ target_link_libraries(phlex_arrow_hdf_driver PRIVATE
   phlex::module
   ${PHLEX_ARROW_HDF_RUNTIME_LIBS}
 )
-if(NOT PHLEX_DRIVER_HPP)
-  message(STATUS "phlex/driver.hpp not installed; using vendored stopgap copy (ddm-c3s.19)")
-  target_include_directories(phlex_arrow_hdf_driver PRIVATE
-    "${CMAKE_CURRENT_SOURCE_DIR}/vendor")
-endif()
 install(TARGETS phlex_arrow_hdf_driver
   LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}")
 

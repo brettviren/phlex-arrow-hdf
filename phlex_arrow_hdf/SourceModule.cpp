@@ -21,6 +21,9 @@
 //   output_layer   (string, required): the Phlex layer to emit into.
 //   output_creator (string, optional, default "input"): the creator label on
 //                  the emitted product (what downstream nodes route on).
+//   stage          (string, optional, default "input"): the stage the emitted
+//                  product carries -- the stage that produced the file's data.
+//                  Phlex >= 0.4 rejects the reserved "CURRENT" here.
 
 #include "phlex_arrow_hdf/ArrowHdfSource.hpp"
 
@@ -36,6 +39,7 @@ PHLEX_REGISTER_SOURCE(s, config)
     auto const product = config.get<std::string>("product");
     auto const output_layer = config.get<std::string>("output_layer");
     auto const output_creator = config.get<std::string>("output_creator", std::string{"input"});
+    auto const stage = config.get<std::string>("stage", std::string{"input"});
 
     // Register under the source's configuration label (the "sources" section key,
     // supplied by the framework as module_label) so a driver's `uses_sources`
@@ -43,5 +47,5 @@ PHLEX_REGISTER_SOURCE(s, config)
     auto const label = config.get<std::string>("module_label", std::string{"arrow_hdf_read"});
 
     s.add_source<phlex_arrow_hdf::ArrowHdfSource>(
-      label, input_file, creator, product, output_creator, output_layer);
+      label, input_file, creator, product, output_creator, output_layer, stage);
 }

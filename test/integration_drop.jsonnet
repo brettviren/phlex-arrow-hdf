@@ -4,6 +4,7 @@
 // The frame Arrow product is therefore NOT claimed by this module: the module
 // must LOG the intentional drop (never silent) and write no file.
 {
+  stage: 'write',  // the job's stage name (required since Phlex 0.4)
   driver: {
     cpp: 'generate_layers',
     layers: { event: { parent: 'job', total: 2, starting_number: 1 } },

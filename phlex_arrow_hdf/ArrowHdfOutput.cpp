@@ -6,7 +6,7 @@
 
 #include "arrow_hdf/Address.hpp"
 
-#include "phlex/model/product_specification.hpp"
+#include "phlex_arrow_common/PhlexTypes.hpp"  // phlex model type aliases (choke point)
 
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
